@@ -8,6 +8,12 @@ use std::io::BufReader;
 use std::io::Write;
 use uuid::Uuid;
 
+mod database;
+mod task;
+
+
+use rusqlite::{Connection, Result};
+
 #[derive(Parser)]
 struct Cli {
     command: Command,
@@ -31,10 +37,15 @@ struct Task {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
     clean();
+
+    let conn = Connection::open("data.db")?;
+    database::start_db(&conn)?;
+    //adicionar validacao de banco
+
     match args.command {
-        Command::Add => create_task(args.parms.expect("Empty task description"))?,
+        Command::Add => database::create_task(&conn, args.parms.expect("Empty task description"))?,
         Command::List => {
-            let tasks = list_task().expect("Erro ao recuperar task");
+            let tasks = database::list_task(&conn).expect("Erro ao recuperar task");
 
             clean();
             println!("+{}+", "-".repeat(45));
@@ -43,7 +54,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             for task in tasks {
                 println!("+{}+", "-".repeat(45));
                 println!(
-                    "| ID:{}\n| Description: {}\n| Completed: {}",
+                    "| ID:{:?}\n| Description: {}\n| Completed: {}",
                     task.id, task.descript, task.completed
                 );
             }
@@ -60,72 +71,49 @@ fn clean() {
     io::stdout().flush().unwrap();
 }
 
+fn list_task() -> Result<Vec<Task>, Box<dyn Error>> {
+    let path = File::open("dados.json")?;
 
+    let reader = BufReader::new(path);
 
-    fn create_task(content: String) -> Result<(), Box<dyn std::error::Error>> {
-        let task: Task = Task {
-            id: Uuid::new_v4(),
-            descript: content,
-            completed: false,
-        };
-        let mut arquivo = OpenOptions::new()
+    let tasks: Vec<Task> = reader
+        .lines()
+        .map(|line| line.unwrap())
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| serde_json::from_str::<Task>(&line).unwrap())
+        .collect();
+    Ok(tasks)
+}
+
+fn check_task(id: String) -> Result<(), Box<dyn std::error::Error>> {
+    let id = Uuid::parse_str(&id).expect("Invalid ID: expected a UUID");
+
+    let mut tasks: Vec<Task> = list_task()
+        .map(|list| {
+            list.into_iter()
+                .filter(|task| !task.descript.is_empty())
+                .collect::<Vec<Task>>()
+        })
+        .unwrap_or_else(|_| Vec::new());
+
+    if let Some(task) = tasks.iter_mut().find(|t| t.id.eq(&id)) {
+        if !task.completed {
+            task.completed = true;
+            println!("Task: {} - OK", task.descript);
+        } else {
+            task.completed = false;
+            println!("Task: {} - Not completed", task.descript)
+        }
+
+        let arquivo: Result<File, io::Error> = OpenOptions::new()
             .create(true)
-            .append(true)
-            .open("dados.json")?;
+            .write(true)
+            .open("dados.json");
 
-        let json_data = serde_json::to_string(&task).unwrap();
+        let json_data = serde_json::to_string(&tasks).unwrap();
 
-        let _salvo = writeln!(arquivo, "{}", json_data);
-
-        match _salvo {
-            Ok(()) => println!("Nova task adicionada"),
-            Err(_) => println!("Erro ao tentar adicionar nova task!"),
-        }
-        Ok(())
+        let _salvo = writeln!(arquivo?, "{}", json_data);
     }
-    fn list_task() -> Result<Vec<Task>, Box<dyn Error>> {
-        let path = File::open("dados.json")?;
 
-        let reader = BufReader::new(path);
-
-        let tasks: Vec<Task> = reader
-            .lines()
-            .map(|line| line.unwrap())
-            .filter(|line| !line.trim().is_empty())
-            .map(|line| serde_json::from_str::<Task>(&line).unwrap())
-            .collect();
-        Ok(tasks)
-    }
-    
-    fn check_task(id: String) -> Result<(), Box<dyn std::error::Error>> {
-        let id = Uuid::parse_str(&id).expect("Invalid ID: expected a UUID");
-
-        let mut tasks: Vec<Task> = list_task()
-            .map(|list| {
-                list.into_iter()
-                    .filter(|task| !task.descript.is_empty())
-                    .collect::<Vec<Task>>()
-            })
-            .unwrap_or_else(|_| Vec::new());
-
-        if let Some(task) = tasks.iter_mut().find(|t| t.id.eq(&id)) {
-            if !task.completed {
-                task.completed = true;
-                println!("Task: {} - OK", task.descript);
-            } else {
-                task.completed = false;
-                println!("Task: {} - Not completed", task.descript)
-            }
-
-            let arquivo: Result<File, io::Error> = OpenOptions::new()
-                .create(true)
-                .write(true)
-                .open("dados.json");
-
-            let json_data = serde_json::to_string(&tasks).unwrap();
-
-            let salvo = writeln!(arquivo?, "{}", json_data);
-        }
-
-        Ok(())
-    }
+    Ok(())
+}
