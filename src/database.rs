@@ -1,5 +1,5 @@
 use crate::task::ModelTask;
-use rusqlite::{params, Connection, Result};
+use rusqlite::{Connection, Result, params};
 
 pub fn start_db(conn: &Connection) -> Result<()> {
     conn.execute(
@@ -21,13 +21,12 @@ pub fn create_task(conn: &Connection, parms: String) -> Result<()> {
     };
     conn.execute(
         "INSERT INTO tasks (descript, completed) VALUES (?1, ?2)",
-       params![task.descript, task.completed],
+        params![task.descript, task.completed],
     )?;
     Ok(())
 }
 
-pub fn list_task(conn: &Connection) ->  Result<Vec<ModelTask>>{
-
+pub fn list_task(conn: &Connection) -> Result<Vec<ModelTask>> {
     let mut stmt = conn.prepare("SELECT * FROM tasks")?;
 
     let tasks = stmt.query_map([], |row| {
@@ -42,5 +41,32 @@ pub fn list_task(conn: &Connection) ->  Result<Vec<ModelTask>>{
     for task in tasks {
         result.push(task?);
     }
-    Ok(result )
+    Ok(result)
+}
+pub fn check_task(conn: &Connection, id: String) -> Result<()> {
+    let search_id: i64 = id.parse().unwrap();
+    let mut _task = conn.query_row(
+        "SELECT id, descript, completed FROM  tasks WHERE id = ?1",
+        params![search_id],
+        |row| {
+            Ok(ModelTask {
+                id: row.get(0).expect("Id não existe"),
+                descript: row.get(1).expect("Dado não encontrado"),
+                completed: row.get(2).expect("Dado não encontrado"),
+            })
+        },
+    )?;
+    if _task.completed == false {
+        _task.completed = true;
+    } else {
+        _task.completed = false;
+    }
+
+    conn.execute(
+        "UPDATE tasks set completed =?1 WHERE id = ?2",
+        params![_task.completed, search_id],
+    )?;
+    println!("Update successfully completed: {:?} => is {:?}",&_task.descript, &_task.completed);
+
+    Ok(())
 }
