@@ -45,6 +45,7 @@ pub fn list_task(conn: &Connection) -> Result<Vec<ModelTask>> {
 }
 pub fn check_task(conn: &Connection, id: String) -> Result<()> {
     let search_id: i64 = id.parse().unwrap();
+
     let mut _task = conn.query_row(
         "SELECT id, descript, completed FROM  tasks WHERE id = ?1",
         params![search_id],
@@ -66,7 +67,23 @@ pub fn check_task(conn: &Connection, id: String) -> Result<()> {
         "UPDATE tasks set completed =?1 WHERE id = ?2",
         params![_task.completed, search_id],
     )?;
-    println!("Update successfully completed: {:?} => is {:?}",&_task.descript, &_task.completed);
+    println!(
+        "Update successfully completed: {:?} => is {:?}",
+        &_task.descript, &_task.completed
+    );
 
+    Ok(())
+}
+
+pub fn delet_task(conn: &Connection, id: String) -> Result<()> {
+    let search_id: i64 = id.parse().unwrap();
+
+    let lines = conn.execute("DELETE FROM tasks WHERE id = ?1", params![search_id])?;
+
+    if lines == 0 {
+        println!("To task was found – there were no changes to the task list")
+    }else{
+        println!("Task successfully removed.")
+    }
     Ok(())
 }

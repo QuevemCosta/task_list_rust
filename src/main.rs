@@ -14,7 +14,7 @@ enum Command {
     Add,
     List,
     Check,
-    Delite,
+    Delete,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -41,8 +41,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             println!("+{}+", "-".repeat(45));
         }
-        Command::Check => database::check_task(&conn, args.parms.expect("Id não encontrado"))?,
-        Command::Delite => todo!(),
+        Command::Check => database::check_task(&conn, args.parms.expect("ID not found"))?,
+        Command::Delete => database::delet_task(&conn, args.parms.expect("ID not found"))?,
     }
     Ok(())
 }
