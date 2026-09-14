@@ -1,28 +1,12 @@
-use crate::task::ModelTask;
+use crate::models::task::ModelTask;
 use rusqlite::{Connection, Result, params};
 
-pub fn start_db(conn: &Connection) -> Result<()> {
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        descript TEXT NOT NULL,
-        completed INTEGER
-    );",
-        (),
-    )?;
-    Ok(())
-}
-
-pub fn create_task(conn: &Connection, parms: String) -> Result<()> {
-    let task: ModelTask = ModelTask {
-        id: None,
-        descript: parms,
-        completed: false,
-    };
+pub fn create_task(conn: &Connection, task: &ModelTask) -> Result<()> {
     conn.execute(
         "INSERT INTO tasks (descript, completed) VALUES (?1, ?2)",
         params![task.descript, task.completed],
     )?;
+
     Ok(())
 }
 
@@ -43,6 +27,7 @@ pub fn list_task(conn: &Connection) -> Result<Vec<ModelTask>> {
     }
     Ok(result)
 }
+
 pub fn check_task(conn: &Connection, id: String) -> Result<()> {
     let search_id: i64 = id.parse().unwrap();
 
@@ -75,15 +60,16 @@ pub fn check_task(conn: &Connection, id: String) -> Result<()> {
     Ok(())
 }
 
-pub fn delet_task(conn: &Connection, id: String) -> Result<()> {
+pub fn delet_task(conn: &Connection, id: String) -> Result<String> {
     let search_id: i64 = id.parse().unwrap();
 
+   
     let lines = conn.execute("DELETE FROM tasks WHERE id = ?1", params![search_id])?;
-
+    let mut msg:&str = "";
     if lines == 0 {
-        println!("To task was found – there were no changes to the task list")
-    }else{
-        println!("Task successfully removed.")
+         msg = "Record does not exist; operation not performed.";
+    } else {
+         msg = "Task successfully removed.";
     }
-    Ok(())
+    Ok(msg.to_string())
 }
