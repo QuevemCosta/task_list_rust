@@ -1,5 +1,6 @@
 use clap::Parser;
 
+mod errors;
 mod infra;
 mod models;
 mod repos;
@@ -30,7 +31,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //adicionar validacao de banco
 
     match args.command {
-        Command::Add => task_services::new_task(args.parms.expect("Empty task description"))?,
+        Command::Add => task_services::new_task(&conn, args.parms.expect("Empty task description"))
+            .expect("Erro"),
         Command::List => {
             let tasks = task_services::list_task().expect("Erro ao recuperar task");
 

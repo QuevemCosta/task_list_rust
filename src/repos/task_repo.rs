@@ -63,13 +63,12 @@ pub fn check_task(conn: &Connection, id: String) -> Result<()> {
 pub fn delet_task(conn: &Connection, id: String) -> Result<String> {
     let search_id: i64 = id.parse().unwrap();
 
-   
     let lines = conn.execute("DELETE FROM tasks WHERE id = ?1", params![search_id])?;
-    let mut msg:&str = "";
+    let msg;
     if lines == 0 {
-         msg = "Record does not exist; operation not performed.";
+        msg = String::from("Record does not exist; operation not performed.");
     } else {
-         msg = "Task successfully removed.";
+        msg = String::from("Task successfully removed.");
     }
-    Ok(msg.to_string())
+    Ok(msg)
 }
