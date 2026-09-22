@@ -8,12 +8,14 @@ use std::io;
 
 
 pub fn new_task(conn: &Connection, task_title: String) -> Result<(), TaskError> {
-    if task_title.trim().is_empty() {
+    let trimmed = task_title.trim();
+
+    if trimmed.is_empty() {
         return Err(TaskError::EmptyDescription);
     }
     let task: ModelTask = ModelTask {
         id: None,
-        descript: task_title,
+        descript: trimmed.to_string(),
         completed: false,
     };
 
@@ -115,5 +117,16 @@ fn deve_salvar_tarefa_no_banco(){
 
     let tasks = task_repo::list_task(&conn).unwrap();
     assert_eq!(tasks.len(),1);
+    assert_eq!(tasks[0].descript, "Estudar Rust");
+}
+#[test]
+fn deve_salvar_tarefa_removendo_espacos_das_extremidades() {
+    let conn = Connection::open_in_memory().unwrap();
+    let _ = database::start_db(&conn);
+
+    let result = new_task(&conn, "  Estudar Rust  ".to_string());
+    assert!(result.is_ok());
+
+    let tasks = task_repo::list_task(&conn).unwrap();
     assert_eq!(tasks[0].descript, "Estudar Rust");
 }
