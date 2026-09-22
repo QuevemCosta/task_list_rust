@@ -1,84 +1,84 @@
-```markdown
-# Projeto Gerenciador de Tarefas com SQLite
+# 🚀 Task List CLI em Rust
 
-Este projeto fornece uma ferramenta simples para gerenciar tarefas usando um banco de dados SQLite. Ele permite adicionar, listar, marcar como concluída, verificar e excluir tarefas.
+Uma aplicação de linha de comando (CLI) para gerenciamento de tarefas (*Task Manager*), desenvolvida em **Rust** com persistência em banco de dados **SQLite** (`rusqlite`). 
 
-## Funcionalidades
+O projeto foi construído focando em **boas práticas de arquitetura**, separação clara de responsabilidades, tratamento de erros idiomático e **suíte de testes unitários automatizados com banco em memória**.
 
-*   **Adicionar Tarefa:** Adiciona uma nova tarefa ao banco de dados.
-*   **Listar Tarefas:** Exibe todas as tarefas armazenadas no banco de dados.
-*   **Marcar como Concluída:** Marca uma tarefa existente como concluída.
-*   **Excluir Tarefa:** Remove uma tarefa do banco de dados.
+---
 
-## Pré-requisitos
+## 🛠️ Tecnologias e Ferramentas
 
-*   **Rust:**  É necessário ter o Rust instalado em seu sistema. Você pode encontrar as instruções de instalação em [https://www.rust-lang.org/](https://www.rust-lang.org/).
-*   **Cargo:** Cargo é o gerenciador de pacotes do Rust e vem com o Rust.
+* **Linguagem:** [Rust](https://www.rust-lang.org/) (Edição 2021)
+* **Banco de Dados:** [SQLite](https://www.sqlite.org/) via crate [`rusqlite`](https://crates.io/crates/rusqlite)
+* **Testes:** Framework nativo de testes do Rust (`#[test]`) com SQLite In-Memory
 
-## Executando o Projeto
+---
 
-1.  **Clone o Repositório:** Clone o repositório do GitHub para sua máquina local.
+## 🏗️ Arquitetura do Projeto
 
-    ```bash
-    git clone [URL do Repositório GitHub]
-    cd [Nome do Diretório do Repositório]
-    ```
+O código é organizado em camadas para garantir testabilidade, facilidade de manutenção e desacoplamento:
 
-2.  **Execute o Projeto:** Navegue até o diretório do projeto e execute o seguinte comando:
-
-    ```bash
-    cargo run
-    ```
-
-## Como Usar
-
-O projeto usa a biblioteca `clap` para receber argumentos da linha de comando.
-
-### Adicionar uma Tarefa
-
-```bash
-cargo run -- add "Comprar pão"
+```text
+src/
+├── database.rs          # Inicialização e schemas de tabelas no SQLite
+├── errors/              # Erros customizados do domínio (TaskError)
+├── models/              # Estruturas de dados/entidades (ModelTask)
+├── repos/               # Camada de repositório (queries puras SQL)
+├── services/            # Regras de negócio, sanitização de dados e testes
+└── main.rs              # Interface CLI e interação com o usuário
 ```
 
-### Listar Todas as Tarefas
 
-```bash
-cargo run -- list
+### Destaques da Implementação
+---
+* Sanitização de Dados: Tratamento automático de strings com .trim() para evitar inserção de registros vazios ou com espaços sobresalentes.
+
+* Isolamento nos Testes: Uso de Connection::open_in_memory() nos testes para garantir execuções rápidas e sem contaminar o banco de dados real (data.db).
+
+* Erros Fortemente Tipados: Mapeamento de exceções com enums customizados (TaskError) e conversão explícita de erros do driver com .map_err().
+
+### 🚀Como Executar o Projeto
+---
+### Pré-requisitos
+Ter o Rust e o Cargo instalados na máquina. Se não tiver, instale pelo site oficial: rustup.rs.
+
+1. Clonar o repositório
+Bash
+git clone [https://github.com/QuevemCosta/task_list_rust.git](https://github.com/QuevemCosta/task_list_rust.git)
+cd task_list_rust
+2. Rodar a aplicação (CLI)
+Bash
+cargo run
+🧪 Executando os Testes Automatizados
+O projeto conta com testes unitários cobrindo fluxos de sucesso e de erro (como tentativa de salvar títulos vazios ou com apenas espaços em branco).
+
+### Para rodar toda a suíte de testes, execute:
+
+Bash
+cargo test
+Para ver o output detalhado de cada teste individualmente:
+
+Bash
+```texto
+cargo test -- --nocapture
 ```
+📝 Funcionalidades
 
-### Marcar uma Tarefa como Concluída
+[x] Criar novas tarefas (com validação e sanitização)
 
-```bash
-cargo run -- check 1
-```
+[x] Listar todas as tarefas cadastradas
 
-### Excluir uma Tarefa
+[x] Marcar tarefas como concluídas
 
-```bash
-cargo run -- delete 1
-```
+[x] Remover tarefas do banco de dados
 
-## Estrutura do Projeto
+---
+<center>
+👤 Autor
 
-*   `database.rs`: Contém as funções para interagir com o banco de dados SQLite (criação da tabela, adição, listagem, marcação como concluída e exclusão de tarefas).
-*   `main.rs`:  Ponto de entrada do programa, utiliza a biblioteca `clap` para receber os argumentos da linha de comando e chama as funções correspondentes do módulo `database`.
-*   `task.rs`: Define a estrutura `ModelTask` que representa uma tarefa no banco de dados.
-*   `Cargo.toml`: Arquivo de configuração do Cargo que define as dependências do projeto.
+Desenvolvido por
 
-## Dependências
+Quevem Costa
 
-*   `rusqlite`: Para interagir com o banco de dados SQLite.
-*   `clap`: Para processar argumentos da linha de comando.
-
-## Considerações
-
-*   O banco de dados `data.db` será criado no mesmo diretório do executável.
-*   O programa usa IDs auto-incrementais para as tarefas.
-*   A validação dos dados (por exemplo, verificar se o ID é um número válido) pode ser melhorada.
-*   A implementação do tratamento de erros poderia ser expandida para fornecer mensagens de erro mais informativas.
-*   Este projeto é um exemplo básico e pode ser expandido com funcionalidades adicionais (por exemplo, adicionar prioridade, data de vencimento, etc.).
-
-## Contribuindo
-
-Se você encontrar algum problema ou tiver alguma sugestão para melhorar o projeto, sinta-se à vontade para abrir um pull request no repositório do GitHub.
-
+GitHub: @QuevemCosta
+<center>

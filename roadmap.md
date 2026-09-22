@@ -13,7 +13,10 @@
 
 ## 🔄 3. Testes
 ### Testes Unitários
+- [x] new_task()
+
 - [ ] Testar validações de entrada
+
 - [ ] Testar regras de negócio dos services
 - [ ] Implementar mocks para dependências
 
