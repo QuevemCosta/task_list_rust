@@ -4,4 +4,5 @@ pub enum TaskError {
     InvalidId,
     TaskNotFound,
     DatabaseError,
+    ListTasksFailed,
 }

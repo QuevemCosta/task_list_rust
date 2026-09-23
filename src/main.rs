@@ -31,10 +31,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //adicionar validacao de banco
 
     match args.command {
-        Command::Add => task_service::create_task(&conn, args.parms.expect("Empty task descriptionion"))
-            .expect("Erro"),
+        Command::Add => {
+            task_service::create_task(&conn, args.parms.expect("Empty task descriptionion"))
+                .expect("Erro")
+        }
         Command::List => {
-            let tasks = task_service::list_tasks().expect("Erro ao recuperar task");
+            let tasks = task_service::list_tasks(&conn).expect("Erro ao recuperar task");
 
             println!("+{}+", "-".repeat(45));
             println!("|{} TASK LIST {}|", " ".repeat(17), " ".repeat(17));
