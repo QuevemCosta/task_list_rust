@@ -1,1 +1,1 @@
-pub mod task_erros;
+pub mod task_errors;

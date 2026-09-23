@@ -1,43 +1,43 @@
-use crate::models::task::ModelTask;
+use crate::models::task::Task;
 use rusqlite::{Connection, Result, params};
 
-pub fn create_task(conn: &Connection, task: &ModelTask) -> Result<()> {
+pub fn create_task(conn: &Connection, task: &Task) -> Result<()> {
     conn.execute(
-        "INSERT INTO tasks (descript, completed) VALUES (?1, ?2)",
-        params![task.descript, task.completed],
+        "INSERT INTO tasks (description, completed) VALUES (?1, ?2)",
+        params![task.description, task.completed],
     )?;
 
     Ok(())
 }
 
-pub fn list_task(conn: &Connection) -> Result<Vec<ModelTask>> {
+pub fn list_tasks(conn: &Connection) -> Result<Vec<Task>> {
     let mut stmt = conn.prepare("SELECT * FROM tasks")?;
 
     let tasks = stmt.query_map([], |row| {
-        Ok(ModelTask {
+        Ok(Task {
             id: row.get(0)?,
-            descript: row.get(1)?,
+            description: row.get(1)?,
             completed: row.get(2)?,
         })
     })?;
 
-    let mut result: Vec<ModelTask> = Vec::new();
+    let mut result: Vec<Task> = Vec::new();
     for task in tasks {
         result.push(task?);
     }
     Ok(result)
 }
 
-pub fn check_task(conn: &Connection, id: String) -> Result<()> {
+pub fn toggle_task(conn: &Connection, id: String) -> Result<()> {
     let search_id: i64 = id.parse().unwrap();
 
     let mut _task = conn.query_row(
-        "SELECT id, descript, completed FROM  tasks WHERE id = ?1",
+        "SELECT id, description, completed FROM  tasks WHERE id = ?1",
         params![search_id],
         |row| {
-            Ok(ModelTask {
+            Ok(Task {
                 id: row.get(0).expect("Id não existe"),
-                descript: row.get(1).expect("Dado não encontrado"),
+                description: row.get(1).expect("Dado não encontrado"),
                 completed: row.get(2).expect("Dado não encontrado"),
             })
         },
@@ -54,13 +54,13 @@ pub fn check_task(conn: &Connection, id: String) -> Result<()> {
     )?;
     println!(
         "Update successfully completed: {:?} => is {:?}",
-        &_task.descript, &_task.completed
+        &_task.description, &_task.completed
     );
 
     Ok(())
 }
 
-pub fn delet_task(conn: &Connection, id: String) -> Result<String> {
+pub fn delete_task(conn: &Connection, id: String) -> Result<String> {
     let search_id: i64 = id.parse().unwrap();
 
     let lines = conn.execute("DELETE FROM tasks WHERE id = ?1", params![search_id])?;

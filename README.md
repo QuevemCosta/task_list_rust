@@ -22,7 +22,7 @@ O código é organizado em camadas para garantir testabilidade, facilidade de ma
 src/
 ├── database.rs          # Inicialização e schemas de tabelas no SQLite
 ├── errors/              # Erros customizados do domínio (TaskError)
-├── models/              # Estruturas de dados/entidades (ModelTask)
+├── models/              # Estruturas de dados/entidades (Task)
 ├── repos/               # Camada de repositório (queries puras SQL)
 ├── services/            # Regras de negócio, sanitização de dados e testes
 └── main.rs              # Interface CLI e interação com o usuário

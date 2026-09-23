@@ -13,7 +13,7 @@
 
 ## 🔄 3. Testes
 ### Testes Unitários
-- [x] new_task()
+- [x] create_task()
 
 - [ ] Testar validações de entrada
 

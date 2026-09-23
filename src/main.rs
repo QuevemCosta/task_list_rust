@@ -7,7 +7,7 @@ mod repos;
 mod services;
 
 use crate::infra::database;
-use crate::services::task_services;
+use crate::services::task_service;
 use rusqlite::{Connection, Result};
 
 #[derive(Parser)]
@@ -27,14 +27,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
 
     let conn = Connection::open("data.db")?;
-    database::start_db(&conn)?;
+    database::init_database(&conn)?;
     //adicionar validacao de banco
 
     match args.command {
-        Command::Add => task_services::new_task(&conn, args.parms.expect("Empty task description"))
+        Command::Add => task_service::create_task(&conn, args.parms.expect("Empty task descriptionion"))
             .expect("Erro"),
         Command::List => {
-            let tasks = task_services::list_task().expect("Erro ao recuperar task");
+            let tasks = task_service::list_tasks().expect("Erro ao recuperar task");
 
             println!("+{}+", "-".repeat(45));
             println!("|{} TASK LIST {}|", " ".repeat(17), " ".repeat(17));
@@ -42,14 +42,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             for task in tasks {
                 println!("+{}+", "-".repeat(45));
                 println!(
-                    "| ID:{:?}\n| Description: {}\n| Completed: {}",
-                    task.id, task.descript, task.completed
+                    "| ID:{:?}\n| descriptionion: {}\n| Completed: {}",
+                    task.id, task.description, task.completed
                 );
             }
             println!("+{}+", "-".repeat(45));
         }
-        Command::Check => task_services::check_task(args.parms.expect("ID not found"))?,
-        Command::Delete => task_services::delet_task(args.parms.expect("ID not found"))?,
+        Command::Check => task_service::toggle_task(args.parms.expect("ID not found"))?,
+        Command::Delete => task_service::delete_task(args.parms.expect("ID not found"))?,
     }
     Ok(())
 }

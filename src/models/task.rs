@@ -1,5 +1,5 @@
-pub struct ModelTask {
+pub struct Task {
     pub id: Option<i64>,
-    pub descript: String,
+    pub description: String,
     pub completed: bool,
 }
