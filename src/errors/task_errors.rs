@@ -1,8 +1,9 @@
 #[derive(Debug)]
 pub enum TaskError {
-    Emptydescriptionion,
+    EmptyDescription,
     InvalidId,
     TaskNotFound,
     DatabaseError,
     ListTasksFailed,
+    MaxLenChars,
 }

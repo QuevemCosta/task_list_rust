@@ -10,12 +10,16 @@ pub fn create_task(conn: &Connection, task_title: String) -> Result<(), TaskErro
     let trimmed = task_title.trim();
 
     if trimmed.is_empty() {
-        return Err(TaskError::Emptydescriptionion);
+        return Err(TaskError::EmptyDescription);
+    }
+    if trimmed.chars().count() >= 150{
+        return Err(TaskError::MaxLenChars);
     }
     let task: Task = Task {
         id: None,
         description: trimmed.to_string(),
-        completed: false,
+        completed: false, 
+
     };
 
     task_repo::create_task(&conn, &task).map_err(|_| TaskError::DatabaseError)
@@ -78,7 +82,7 @@ fn deve_retornar_erro_quando_titulo_vazio() {
 
     // Asser
 
-    assert!(matches!(result, Err(TaskError::Emptydescriptionion)));
+    assert!(matches!(result, Err(TaskError::EmptyDescription)));
 }
 
 #[test]
@@ -106,7 +110,7 @@ fn deve_retornar_erro_quando_titulo_conter_apenas_espacos() {
 
     // Asser
 
-    assert!(matches!(result, Err(TaskError::Emptydescriptionion)));
+    assert!(matches!(result, Err(TaskError::EmptyDescription)));
 }
 
 #[test]
@@ -137,7 +141,22 @@ fn deve_salvar_tarefa_removendo_espacos_das_extremidades() {
     let tasks = task_repo::list_tasks(&conn).unwrap();
     assert_eq!(tasks[0].description, "Estudar Rust");
 }
+#[test]
+fn test_create_task_with_maximum_length_title() {
+    let conn = Connection::open_in_memory().unwrap();
+     database::init_database(&conn);
 
+    let result = create_task(&conn, "A".repeat(150));
+   assert!(matches!(result, Err(TaskError::MaxLenChars)));
+}
+#[test]
+fn test_create_task_with_just_under_maximum_length_title() {
+    let conn = Connection::open_in_memory().unwrap();
+     database::init_database(&conn);
+
+    let result = create_task(&conn, "A".repeat(149));
+   assert!(result.is_ok());
+}
 //===================FIM TESTES create_task() ================================
 
 //======================INICIO TESTES LIST_TASK()=========================
@@ -159,7 +178,7 @@ fn testa_erro_na_conexao_com_banco() {
 fn testa_listagem_com_dois_elementos() {
     // Arrange
     let conn = Connection::open_in_memory().unwrap();
-    database::init_database(&conn);
+    let _ = database::init_database(&conn);
 
     create_task(&conn, "Teste 01".to_string());
     create_task(&conn, "Teste 02".to_string());
@@ -175,7 +194,7 @@ fn testa_listagem_com_dois_elementos() {
 fn para_quando_retorna_uma_lista_de_tasks_vazia() {
     // Arrange
     let conn = Connection::open_in_memory().unwrap();
-    database::init_database(&conn);
+    let _ = database::init_database(&conn);
 
     let result = list_tasks(&conn);
     assert!(result.is_ok());
