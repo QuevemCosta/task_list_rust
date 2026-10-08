@@ -3,7 +3,6 @@ use crate::errors::task_errors::TaskError;
 use crate::models::task::Task;
 use crate::repos::task_repo;
 use rusqlite::{Connection, Result};
-use std::io;
 
 //=========================CREATE_TASK()===============================================
 pub fn create_task(conn: &Connection, task_title: String) -> Result<(), TaskError> {
@@ -12,14 +11,13 @@ pub fn create_task(conn: &Connection, task_title: String) -> Result<(), TaskErro
     if trimmed.is_empty() {
         return Err(TaskError::EmptyDescription);
     }
-    if trimmed.chars().count() >= 150{
+    if trimmed.chars().count() >= 150 {
         return Err(TaskError::MaxLenChars);
     }
     let task: Task = Task {
         id: None,
         description: trimmed.to_string(),
-        completed: false, 
-
+        completed: false,
     };
 
     task_repo::create_task(&conn, &task).map_err(|_| TaskError::DatabaseError)
@@ -37,34 +35,18 @@ pub fn list_tasks(conn: &Connection) -> Result<Vec<Task>, TaskError> {
 //=========================FIM TASK_LIST()=================================
 
 //=========================TAGGLE_LIST()=================================
-pub fn toggle_task(id: String) -> Result<()> {
-    let conn = Connection::open("data.db")?;
+pub fn toggle_task(conn: &Connection, id: String) -> Result<(), TaskError> {
 
-    database::init_database(&conn)?;
+    task_repo::toggle_task(&conn, id).map_err(|e| TaskError::TaskNotFound);
 
-    Ok(task_repo::toggle_task(&conn, id)?)
+    Ok(())
 }
 //=========================FIM TAGGLE_LIST()=================================
 
 //=========================DELET_LIST()=====================================
-pub fn delete_task(id: String) -> Result<()> {
-    println!("Do you really want to permanently delete the task? y/n");
-
-    let conn = Connection::open("data.db")?;
-    database::init_database(&conn)?;
-
-    let mut confirm = String::new();
-    io::stdin()
-        .read_line(&mut confirm)
-        .expect("Erro ao ler entrada");
-
-    if confirm.to_string() == "y\n".to_string() {
-        task_repo::delete_task(&conn, id)?;
-    } else if confirm.to_string() == "n\n".to_string() {
-        println!("Operation cancelled");
-    } else {
-        println!("Invalid option");
-    }
+pub fn delete_task(conn: &Connection, id: String) -> Result<(), TaskError> {
+   
+    task_repo::delete_task(&conn, id).map_err(|_| TaskError::DeleteError);
 
     Ok(())
 }
@@ -144,18 +126,18 @@ fn deve_salvar_tarefa_removendo_espacos_das_extremidades() {
 #[test]
 fn test_create_task_with_maximum_length_title() {
     let conn = Connection::open_in_memory().unwrap();
-     database::init_database(&conn);
+    database::init_database(&conn);
 
     let result = create_task(&conn, "A".repeat(150));
-   assert!(matches!(result, Err(TaskError::MaxLenChars)));
+    assert!(matches!(result, Err(TaskError::MaxLenChars)));
 }
 #[test]
 fn test_create_task_with_just_under_maximum_length_title() {
     let conn = Connection::open_in_memory().unwrap();
-     database::init_database(&conn);
+    database::init_database(&conn);
 
     let result = create_task(&conn, "A".repeat(149));
-   assert!(result.is_ok());
+    assert!(result.is_ok());
 }
 //===================FIM TESTES create_task() ================================
 
@@ -209,5 +191,4 @@ fn deve_retornar_erro_quando_consulta_das_tarefas_falhar() {
     let result = list_tasks(&conn);
     dbg!(&result);
     assert!(result.is_err());
-    //assert!(matches!(result, Err(TaskError::DatabaseError)));
 }

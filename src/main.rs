@@ -10,6 +10,8 @@ use crate::infra::database;
 use crate::services::task_service;
 use rusqlite::{Connection, Result};
 
+use std::io;
+
 #[derive(Parser)]
 struct Cli {
     command: Command,
@@ -50,8 +52,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             println!("+{}+", "-".repeat(45));
         }
-        Command::Check => task_service::toggle_task(args.parms.expect("ID not found"))?,
-        Command::Delete => task_service::delete_task(args.parms.expect("ID not found"))?,
+        Command::Check => task_service::toggle_task(&conn, args.parms.expect("Id não existe"))
+            .expect("Erro ao alternar tarefa"),
+
+        Command::Delete => {
+            println!("Delete the task? S/N");
+            let mut confirm:String = String::new();
+            confirm  = io::stdin()
+                .read_line(&mut confirm)
+                .expect("Falha ao ler a linha").to_string();
+            confirm = confirm.to_lowercase().trim().to_string();
+
+            if confirm == "s".to_string() {
+                let _ = task_service::delete_task(&conn, args.parms.expect("ID not found"))
+                    .expect("Erro ao deletar");
+            }else if confirm == "n".to_string() {
+                println!("O registro não foi apagado")
+            }else {
+                println!("Opção Invalida!")
+            }
+        }
     }
     Ok(())
 }
