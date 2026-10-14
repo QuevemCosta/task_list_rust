@@ -42,8 +42,7 @@ pub fn toggle_task(conn: &Connection, id: String) -> Result<(), TaskError> {
 
 //=========================DELET_LIST()=====================================
 pub fn delete_task(conn: &Connection, id: String) -> Result<(), TaskError> {
-    task_repo::delete_task(conn, id).map_err(|_e| TaskError::DeleteError);
-    Ok(())
+    task_repo::delete_task(conn, id).map_err(|_| TaskError::DeleteError)
 }
 //=========================FIM DELET_LIST()=====================================
 

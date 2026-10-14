@@ -1,3 +1,4 @@
+use crate::errors::task_errors::TaskError;
 use crate::models::task::Task;
 use rusqlite::{Connection, Result, params};
 
@@ -11,9 +12,9 @@ pub fn create_task(conn: &Connection, task: &Task) -> Result<()> {
 }
 
 pub fn list_tasks(conn: &Connection) -> Result<Vec<Task>> {
-    let mut stmt = conn.prepare("SELECT * FROM tasks")?;
-
-    let tasks = stmt.query_map([], |row| {
+    let mut stmt = conn.prepare("SELECT * FROM tasks");
+    let mut binding = stmt?;
+    let tasks = binding.query_map([], |row| {
         Ok(Task {
             id: row.get(0)?,
             description: row.get(1)?,
@@ -60,15 +61,12 @@ pub fn toggle_task(conn: &Connection, id: String) -> Result<()> {
     Ok(())
 }
 
-pub fn delete_task(conn: &Connection, id: String) -> Result<String> {
-    let search_id: i64 = id.parse().unwrap();
+pub fn delete_task(conn: &Connection, id: String) -> Result<(), TaskError> {
+    let search_id: i64 = id.parse().map_err(|_| TaskError::TaskNotFound)?;
 
-    let lines = conn.execute("DELETE FROM tasks WHERE id = ?1", params![search_id])?;
-    let msg;
-    if lines == 0 {
-        msg = String::from("Record does not exist; operation not performed.");
-    } else {
-        msg = String::from("Task successfully removed.");
+    let lines = conn.execute("DELETE FROM tasks WHERE id = ?1", params![search_id]);
+    if lines == Ok(0) {
+        return Err(TaskError::TaskNotFound);
     }
-    Ok(msg)
+    Ok(())
 }
