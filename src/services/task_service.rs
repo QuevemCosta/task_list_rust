@@ -1,5 +1,5 @@
-use crate::database;
 use crate::errors::task_errors::TaskError;
+use crate::infra::database;
 use crate::models::task::Task;
 use crate::repos::task_repo;
 use rusqlite::{Connection, Result};
@@ -36,18 +36,13 @@ pub fn list_tasks(conn: &Connection) -> Result<Vec<Task>, TaskError> {
 
 //=========================TAGGLE_LIST()=================================
 pub fn toggle_task(conn: &Connection, id: String) -> Result<(), TaskError> {
-
-    task_repo::toggle_task(&conn, id).map_err(|e| TaskError::TaskNotFound);
-
-    Ok(())
+    task_repo::toggle_task(conn, id).map_err(|e_| TaskError::TaskNotFound)
 }
 //=========================FIM TAGGLE_LIST()=================================
 
 //=========================DELET_LIST()=====================================
 pub fn delete_task(conn: &Connection, id: String) -> Result<(), TaskError> {
-   
-    task_repo::delete_task(&conn, id).map_err(|_| TaskError::DeleteError);
-
+    task_repo::delete_task(conn, id).map_err(|_e| TaskError::DeleteError);
     Ok(())
 }
 //=========================FIM DELET_LIST()=====================================
