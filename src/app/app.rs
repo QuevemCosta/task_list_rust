@@ -57,6 +57,6 @@ fn view_list(tasks: Vec<Task>) {
         let status = if task.completed { "[x]" } else { "[ ]" };
         let description = task.description;
         println!("│ {:>2} │ {:<8} │ {:<50} │", id, status, description);
-        println!("└────┴──────────┴────────────────────────────────────────────────────┘");
     }
+    println!("└────┴──────────┴────────────────────────────────────────────────────┘");
 }
