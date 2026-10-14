@@ -36,7 +36,7 @@ pub fn list_tasks(conn: &Connection) -> Result<Vec<Task>, TaskError> {
 
 //=========================TAGGLE_LIST()=================================
 pub fn toggle_task(conn: &Connection, id: String) -> Result<(), TaskError> {
-    task_repo::toggle_task(conn, id).map_err(|e_| TaskError::TaskNotFound)
+    task_repo::toggle_task(conn, id).map_err(|_| TaskError::TaskNotFound)
 }
 //=========================FIM TAGGLE_LIST()=================================
 

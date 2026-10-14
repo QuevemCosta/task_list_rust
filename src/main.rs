@@ -1,41 +1,38 @@
-use clap::{Args, Parser, Subcommand};
+use clap::Parser;
+use rusqlite::{Connection, Result};
 
+mod app;
 mod errors;
 mod infra;
 mod models;
 mod repos;
 mod services;
-mod app;
 
-use crate::infra::database;
-use crate::services::task_service;
 use crate::app::app::app;
-use rusqlite::{Connection, Result};
-use std::io;
-
+use crate::infra::database;
 
 #[derive(Parser)]
 #[command(name = "task_list")]
 #[command(version = "0.0.1")]
 #[command(about = "Gerenciador de tarefas")]
-struct Cli {
+pub struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    pub command: Commands,
 }
+
 #[derive(clap::Subcommand, Clone)]
-enum Commands {
+pub enum Commands {
     Add { description: String },
     List,
     Check { id: String },
     Delete { id: String },
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>>{
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let conn = Connection::open("data.db")?;
-    infra::database::init_database(&conn);
+    database::init_database(&conn);
 
     app(cli, &conn);
     Ok(())
 }
-
