@@ -35,7 +35,7 @@ pub fn app(cli: Cli, conn: &Connection) -> Result<(), Box<dyn std::error::Error>
             Err(_) => eprintln!("Erro: Erro ao atualizar a tarefa !!!"),
         },
         Commands::Delete { id } => match task_service::delete_task(&conn, id.to_string()) {
-            Ok(()) => println!("Tarefa apagada com sucesso !!!"),
+            Ok(..) => println!("Tarefa apagada com sucesso !!!"),
             Err(_) => eprintln!("Erro ao apagar tarefa"),
         },
     }

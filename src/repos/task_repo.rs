@@ -1,4 +1,4 @@
-use crate::errors::task_errors::TaskError;
+//use crate::errors::task_errors::TaskError;
 use crate::models::task::Task;
 use rusqlite::{Connection, Result, params};
 
@@ -12,7 +12,7 @@ pub fn create_task(conn: &Connection, task: &Task) -> Result<()> {
 }
 
 pub fn list_tasks(conn: &Connection) -> Result<Vec<Task>> {
-    let mut stmt = conn.prepare("SELECT * FROM tasks");
+    let stmt = conn.prepare("SELECT * FROM tasks");
     let mut binding = stmt?;
     let tasks = binding.query_map([], |row| {
         Ok(Task {
@@ -61,12 +61,9 @@ pub fn toggle_task(conn: &Connection, id: String) -> Result<()> {
     Ok(())
 }
 
-pub fn delete_task(conn: &Connection, id: String) -> Result<(), TaskError> {
-    let search_id: i64 = id.parse().map_err(|_| TaskError::TaskNotFound)?;
+pub fn delete_task(conn: &Connection, id: i64) -> Result<usize> {
+    
 
-    let lines = conn.execute("DELETE FROM tasks WHERE id = ?1", params![search_id]);
-    if lines == Ok(0) {
-        return Err(TaskError::TaskNotFound);
-    }
-    Ok(())
+    conn.execute("DELETE FROM tasks WHERE id = ?1", params![id])
+
 }

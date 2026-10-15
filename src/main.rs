@@ -31,8 +31,8 @@ pub enum Commands {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let conn = Connection::open("data.db")?;
-    database::init_database(&conn);
+    database::init_database(&conn)?;
 
-    app(cli, &conn);
+    app(cli, &conn)?;
     Ok(())
 }

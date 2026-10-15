@@ -41,8 +41,16 @@ pub fn toggle_task(conn: &Connection, id: String) -> Result<(), TaskError> {
 //=========================FIM TAGGLE_LIST()=================================
 
 //=========================DELET_LIST()=====================================
-pub fn delete_task(conn: &Connection, id: String) -> Result<(), TaskError> {
-    task_repo::delete_task(conn, id).map_err(|_| TaskError::DeleteError)
+pub fn delete_task(conn: &Connection, id: String) -> Result<(),TaskError> {
+    let search_id: i64 = id.parse().map_err(|_| TaskError::InvalidId)?;
+    let lines = task_repo::delete_task(conn, search_id).map_err(|_| TaskError::TaskNotFound)?;
+
+    if lines == 0 {
+        return Err(TaskError::TaskNotFound);
+    } else {
+        Ok(())
+    }
+   
 }
 //=========================FIM DELET_LIST()=====================================
 
@@ -120,7 +128,7 @@ fn deve_salvar_tarefa_removendo_espacos_das_extremidades() {
 #[test]
 fn test_create_task_with_maximum_length_title() {
     let conn = Connection::open_in_memory().unwrap();
-    database::init_database(&conn);
+    database::init_database(&conn).unwrap();
 
     let result = create_task(&conn, "A".repeat(150));
     assert!(matches!(result, Err(TaskError::MaxLenChars)));
@@ -128,7 +136,7 @@ fn test_create_task_with_maximum_length_title() {
 #[test]
 fn test_create_task_with_just_under_maximum_length_title() {
     let conn = Connection::open_in_memory().unwrap();
-    database::init_database(&conn);
+    database::init_database(&conn).unwrap();
 
     let result = create_task(&conn, "A".repeat(149));
     assert!(result.is_ok());
@@ -156,8 +164,8 @@ fn testa_listagem_com_dois_elementos() {
     let conn = Connection::open_in_memory().unwrap();
     let _ = database::init_database(&conn);
 
-    create_task(&conn, "Teste 01".to_string());
-    create_task(&conn, "Teste 02".to_string());
+    create_task(&conn, "Teste 01".to_string()).unwrap();
+    create_task(&conn, "Teste 02".to_string()).unwrap();
 
     let result = list_tasks(&conn);
     assert!(result.is_ok());

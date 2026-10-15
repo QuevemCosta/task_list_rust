@@ -5,5 +5,5 @@ pub enum TaskError {
     DatabaseError,
     ListTasksFailed,
     MaxLenChars,
-    DeleteError,
+    InvalidId,
 }
